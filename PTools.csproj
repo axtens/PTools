@@ -53,6 +53,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Blocks.cs" />
+    <Compile Include="HOPL.cs" />
+    <Compile Include="IHOPL.cs" />
+    <Compile Include="IKit.cs" />
     <Compile Include="Kit.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
