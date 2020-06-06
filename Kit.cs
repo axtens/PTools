@@ -11,20 +11,10 @@ using System.Data.SqlTypes;
 using Newtonsoft.Json;
 using System.Threading;
 using System.Security.Policy;
+using System.Diagnostics;
 
 namespace PTools
 {
-    public class FailureBlock
-    {
-        public string Error { get; set; }
-        public string Cargo { get; set; }
-    }
-
-    public class SuccessBlock
-    {
-        public string Error { get; set; }
-        public DataTable Cargo { get; set; }
-    }
 
     [Guid("5E10370D-B1C1-400B-80C0-481A9E2AD499")]
     [ComVisible(true)]
@@ -33,6 +23,9 @@ namespace PTools
         string TagValue(string tag, string value);
         string TagAttrValue(string tag, string attr, string value);
         string EvaluateSQLReturnJSON(string connection, string sql, int timeout = 60);
+        string EvaluateSQL(string connection, string sql, int timeout = 60);
+        string GetTicks();
+        string GetUnixTimestamp();
     }
 
 
@@ -50,6 +43,56 @@ namespace PTools
             return $"<{tag} {attr}>{value}</{tag}>";
         }
 
+        string IKit.EvaluateSQL(string connection, string sql, int timeout = 60)
+        {
+            SqlConnection sqlConnection;
+            try
+            {
+                sqlConnection = new SqlConnection(connection);
+                sqlConnection.Open();
+            }
+            catch (Exception e)
+            {
+                return JsonConvert.SerializeObject(new FailureBlock
+                {
+                    Error = e.Message,
+                    Cargo = null
+                });
+            }
+
+            while (sqlConnection.State == ConnectionState.Connecting)
+            {
+                Thread.Sleep(1);
+            }
+
+            using (DataTable table = new DataTable())
+            {
+                using (var command = sqlConnection.CreateCommand())
+                {
+                    command.CommandText = sql;
+                    command.CommandTimeout = timeout;
+                    command.CommandType = CommandType.Text;
+                    try
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                    catch (Exception e)
+                    {
+                        return JsonConvert.SerializeObject(new FailureBlock
+                        {
+                            Error = e.Message,
+                            Cargo = null
+                        });
+                    }
+                }
+
+                return JsonConvert.SerializeObject(new SuccessBlock
+                {
+                    Error = null,
+                    Cargo = null
+                });
+            }
+        }
         string IKit.EvaluateSQLReturnJSON(string connection, string sql, int timeout)
         {
             SqlConnection sqlConnection;
@@ -102,6 +145,26 @@ namespace PTools
                     Cargo = table
                 });
             }
+        }
+
+        string IKit.GetTicks()
+        {
+            return JsonConvert.SerializeObject(new SuccessLongBlock
+            {
+                Error = null,
+                Cargo = DateTime.UtcNow.Ticks
+            });
+        }
+
+        string IKit.GetUnixTimestamp()
+        {
+            var ticks = DateTime.UtcNow;
+            var unixTimestamp = (Int64)ticks.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds;
+            return JsonConvert.SerializeObject(new SuccessLongBlock
+            {
+                Error = null,
+                Cargo = unixTimestamp
+            });
         }
     }
 }
