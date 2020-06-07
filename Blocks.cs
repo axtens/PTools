@@ -14,6 +14,11 @@ namespace PTools
         public string Error { get; set; }
         public Dictionary<string, string> Cargo { get; set; }
     }
+    public class SuccessStringBlock
+    {
+        public string Error { get; set; }
+        public string Cargo { get; set; }
+    }
     public class FailureBlock
     {
         public string Error { get; set; }

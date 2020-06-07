@@ -7,6 +7,8 @@ using System.Dynamic;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System.Text;
+using System.Net.Http.Headers;
 
 namespace PTools
 {
@@ -15,27 +17,73 @@ namespace PTools
     [ComVisible(true)]
     public class HOPL : IHOPL
     {
-		private bool debugging { get; set; }
-		bool IHOPL.Debug(bool flag)
+        private bool debugging { get; set; }
+        bool IHOPL.Debug(bool flag)
         {
-			bool prev = debugging;
-			debugging = flag;
-			return prev;
+            bool prev = debugging;
+            debugging = flag;
+            return prev;
         }
-		string IHOPL.VarsToJson(string caret_terminated_bracketed_name_and_value)
+
+        string IHOPL.GenerateGenericTableFromRst64(string rst64_tabs_crlf)
         {
-			if (debugging) Debugger.Launch();
+            if (debugging) Debugger.Launch();
+
+            var bytes = Convert.FromBase64String(rst64_tabs_crlf);
+            var decoded = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+            var dataTable = ParseIncomingRstToArrayOfDictionary(decoded);
+
+            var body = new List<string>();
+            foreach (var item in dataTable)
+            {
+                var line = new List<string>();
+                foreach (var element in item)
+                {
+                    line.Add(Tools.TagValue("TD", element.Value));
+                }
+                body.Add(Tools.TagValue("TR", string.Join("", line)));
+            }
+
+            var head = Tools.TagValue("TR", string.Join("",
+                (from elt
+                 in dataTable.First().Keys
+                 select Tools.TagValue("TH", elt)).ToArray()));
+
+            return JsonConvert.SerializeObject(new SuccessStringBlock
+            {
+                Cargo = Tools.TagAttrValue("TABLE", "BORDER='1'",
+                Tools.TagValue("THEAD", head) +
+                Tools.TagValue("TBODY", string.Join("", body))),
+                Error = null
+            });
+        }
+        string IHOPL.VarsToJson(string caret_terminated_bracketed_name_and_value)
+        {
+            if (debugging) Debugger.Launch();
             var dict = ParseVarsToDictionary(caret_terminated_bracketed_name_and_value);
-			return JsonConvert.SerializeObject(new SuccessDictionaryBlock()
-			{
-				Error = null,
-				Cargo = dict
-			});
-		}
+            return JsonConvert.SerializeObject(new SuccessDictionaryBlock()
+            {
+                Error = null,
+                Cargo = dict
+            });
+        }
+        string IHOPL.Rst64ToJson(string rst64_tabs_crlf)
+        {
+            if (debugging) Debugger.Launch();
+
+            var bytes = Convert.FromBase64String(rst64_tabs_crlf);
+            var decoded = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+            var dataTable = ParseIncomingRstToArrayOfDictionary(decoded);
+            return JsonConvert.SerializeObject(new SuccessListDictionaryBlock
+            {
+                Cargo = dataTable,
+                Error = null
+            });
+        }
         string IHOPL.RstToJson(string rst_tabs_crlf)
         {
-			if (debugging) Debugger.Launch();
-			var dataTable = ParseIncomingRstToArrayOfDictionary(rst_tabs_crlf);
+            if (debugging) Debugger.Launch();
+            var dataTable = ParseIncomingRstToArrayOfDictionary(rst_tabs_crlf);
             return JsonConvert.SerializeObject(new SuccessListDictionaryBlock
             {
                 Cargo = dataTable,
@@ -44,33 +92,33 @@ namespace PTools
         }
         string IHOPL.SayYear(string rst_tabs_crlf, string which, string vars)
         {
-			if (debugging) Debugger.Launch();
-			// make a dictionary from vars assuming '[var]val^[var]val^' (caret as terminator)
-			// split rst_tabs_crlf on crlf to get rows
-			// then on tabs to get fields
-			// then use row 0 to give headings for dictionary of array of string
-			var dataTable = ParseIncomingRstToArrayOfDictionary(rst_tabs_crlf);
-			Dictionary<string,string> varDict = ParseVarsToDictionary(vars);
+            if (debugging) Debugger.Launch();
+            // make a dictionary from vars assuming '[var]val^[var]val^' (caret as terminator)
+            // split rst_tabs_crlf on crlf to get rows
+            // then on tabs to get fields
+            // then use row 0 to give headings for dictionary of array of string
+            var dataTable = ParseIncomingRstToArrayOfDictionary(rst_tabs_crlf);
+            Dictionary<string, string> varDict = ParseVarsToDictionary(vars);
             return string.Empty;
         }
 
         private Dictionary<string, string> ParseVarsToDictionary(string vars)
         {
-			if (debugging) Debugger.Launch();
+            if (debugging) Debugger.Launch();
             var result = new Dictionary<string, string>();
-			var pattern = new Regex(@"\[(\w+)\]([^^]*)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-			var matches = pattern.Matches(vars);
-			foreach (Match match in matches)
+            var pattern = new Regex(@"\[(\w+)\]([^^]*)", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            var matches = pattern.Matches(vars);
+            foreach (Match match in matches)
             {
-				result[match.Groups[1].Value] = match.Groups[2].Value;
+                result[match.Groups[1].Value] = match.Groups[2].Value;
             }
-			return result;
+            return result;
         }
 
-		private List<Dictionary<string, string>> ParseIncomingRstToArrayOfDictionary(string rst_tabs_crlf)
+        private List<Dictionary<string, string>> ParseIncomingRstToArrayOfDictionary(string rst_tabs_crlf)
         {
-			if (debugging) Debugger.Launch();
-			var lineArray = rst_tabs_crlf.Split(new string[] { "\r\n" }, StringSplitOptions.None);
+            if (debugging) Debugger.Launch();
+            var lineArray = rst_tabs_crlf.Split(new string[] { "\r\n" }, StringSplitOptions.None);
             var fieldNamesArray = lineArray[0].Split(new string[] { "\t" }, StringSplitOptions.None);
             var resultArray = new List<Dictionary<string, string>>();
             for (var i = 1; i < lineArray.Length; i++)
@@ -147,18 +195,18 @@ namespace PTools
 */
         string IHOPL.SaySammet(string rst_tabs_crlf, string which, string vars)
         {
-			if (debugging) Debugger.Launch();
-			return string.Empty;
+            if (debugging) Debugger.Launch();
+            return string.Empty;
         }
         string IHOPL.SayNode(string rst_tabs_crlf, string which, string vars)
         {
-			if (debugging) Debugger.Launch();
-			return string.Empty;
+            if (debugging) Debugger.Launch();
+            return string.Empty;
         }
         string IHOPL.SayCountry(string rst_tabs_crlf, string which, string vars)
         {
-			if (debugging) Debugger.Launch();
-			return string.Empty;
+            if (debugging) Debugger.Launch();
+            return string.Empty;
         }
 
     }

@@ -22,11 +22,11 @@ namespace PTools
     {
         string IKit.TagValue(string tag, string value)
         {
-            return $"<{tag}>{value}</{tag}>";
+            return PTools.Tools.TagValue(tag, value);
         }
         string IKit.TagAttrValue(string tag, string attr, string value)
         {
-            return $"<{tag} {attr}>{value}</{tag}>";
+            return PTools.Tools.TagAttrValue(tag, attr, value);
         }
 
         string IKit.EvaluateSQL(string connection, string sql, int timeout = 60)
