@@ -8,7 +8,7 @@ namespace PTools
     public interface IHOPL
     {
         bool Debug(bool debug);
-        string GenerateGenericTableFromRst64(string rst64_tabs_crlf);
+        string GenerateGenericTableFromRst64(string rst64_tabs_crlf, string vars = "");
         string VarsToJson(string caret_terminated_bracketed_name_and_value);
         string Rst64ToJson(string rst64_tabs_crlf);
         string RstToJson(string rst_tabs_crlf);

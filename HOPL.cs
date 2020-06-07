@@ -25,13 +25,15 @@ namespace PTools
             return prev;
         }
 
-        string IHOPL.GenerateGenericTableFromRst64(string rst64_tabs_crlf)
+        string IHOPL.GenerateGenericTableFromRst64(string rst64_tabs_crlf, string vars = "")
         {
             if (debugging) Debugger.Launch();
 
             var bytes = Convert.FromBase64String(rst64_tabs_crlf);
             var decoded = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
             var dataTable = ParseIncomingRstToArrayOfDictionary(decoded);
+
+            var dict = ParseVarsToDictionary(vars);
 
             var body = new List<string>();
             foreach (var item in dataTable)
@@ -52,6 +54,7 @@ namespace PTools
             return JsonConvert.SerializeObject(new SuccessStringBlock
             {
                 Cargo = Tools.TagAttrValue("TABLE", "BORDER='1'",
+                (dict.ContainsKey("caption") ? Tools.TagValue("CAPTION", dict["caption"]) : string.Empty) +
                 Tools.TagValue("THEAD", head) +
                 Tools.TagValue("TBODY", string.Join("", body))),
                 Error = null
