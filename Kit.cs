@@ -72,7 +72,7 @@ namespace PTools
                     }
                 }
 
-                return JsonConvert.SerializeObject(new SuccessBlock
+                return JsonConvert.SerializeObject(new SuccessDataTableBlock
                 {
                     Error = null,
                     Cargo = null
@@ -125,7 +125,7 @@ namespace PTools
                     }
                 }
 
-                return JsonConvert.SerializeObject(new SuccessBlock
+                return JsonConvert.SerializeObject(new SuccessDataTableBlock
                 {
                     Error = null,
                     Cargo = table

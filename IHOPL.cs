@@ -7,6 +7,13 @@ namespace PTools
     [ComVisible(true)]
     public interface IHOPL
     {
+        bool Debug(bool debug);
+        string VarsToJson(string caret_terminated_bracketed_name_and_value);
+        string RstToJson(string rst_tabs_crlf);
+        string SayYear(string rst_tabs_crlf, string which, string vars);
+        string SaySammet(string rst_tabs_crlf, string which, string vars);
+        string SayNode(string rst_tabs_crlf, string which, string vars);
+        string SayCountry(string rst_tabs_crlf, string which, string vars);
 
     }
 }

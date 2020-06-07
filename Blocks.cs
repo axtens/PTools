@@ -1,12 +1,25 @@
-﻿﻿using System.Data;
+﻿using System.Collections.Generic;
+using System.Data;
+using System.Security.Policy;
+
 namespace PTools
 {
+    public class SuccessListDictionaryBlock
+    {
+        public string Error { get; set; }
+        public List<Dictionary<string,string>> Cargo { get; set; }
+    }
+    public class SuccessDictionaryBlock
+    {
+        public string Error { get; set; }
+        public Dictionary<string, string> Cargo { get; set; }
+    }
     public class FailureBlock
     {
         public string Error { get; set; }
         public string Cargo { get; set; }
     }
-    public class SuccessBlock
+    public class SuccessDataTableBlock
     {
         public string Error { get; set; }
         public DataTable Cargo { get; set; }
